@@ -7,9 +7,22 @@ provider:
   region: eu-west-1
 
   stage: ${opt:stage, 'dev'}
-  environment: ${file(env.yml):${self:provider.stage}, file(env.yml):default}
+  environment: ${file(env.yml):${self:provider.stage}}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        # - "Fn::GetAtt": [ CheckTable, Arn ] #  long YAML form
+        - !GetAtt CheckTable.Arn   #  short YAML form
 
 package:
+  exclude:
+    - ./**
   include:
     - handler.js
     - lib/**
@@ -19,20 +32,29 @@ functions:
   check:
     handler: handler.check
     events:
-      - http:
-          path: check
-          method: get
-      - schedule: rate(10 minutes)
+      # - http:
+      #     path: check
+      #     method: get
+      # - schedule: rate(10 minutes)
+      - schedule: rate(1 hour)
+    environment:
+      # Ref of a DynamoDB Table returns its name
+      # AWS_DYNAMODB_CHECK: { Ref: CheckTable }  #  long YAML form
+      AWS_DYNAMODB_CHECK: !Ref CheckTable #  short YAML form
+          
    
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+resources:
+  Resources:
+    CheckTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

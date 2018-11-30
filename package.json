@@ -10,6 +10,8 @@
   "author": "Rumen Neshev <rstardev@abv.bg>",
   "license": "MIT",
   "dependencies": {
-    "date-fns": "^1.29.0"
+    "date-fns": "^1.29.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5"
   }
 }
