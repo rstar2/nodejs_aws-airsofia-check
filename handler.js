@@ -1,5 +1,6 @@
 const dateFormat = require('date-fns/format');
 
+// uncomment when used with "$ sls invoke local -f check"
 process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
 process.env.AWS_PROFILE = 'my-expirations-check';
 
@@ -9,6 +10,8 @@ const luftdaten = require('./lib/luftdaten');
 // initialize an SMS API gateway
 const smsapi = require('./lib/smsapi')(process.env.TWILIO_ACCOUNT_SID,
     process.env.TWILIO_AUTH_TOKEN, process.env.TWILIO_SENDER);
+
+const ses = require('./lib/aws-ses')(process.env.AWS_SES_SENDER);
 
 const LUFTDATEN_NODES = (process.env.LUFTDATEN_NODES || '5545, 10945').split(',')
     .map(str => +str.trim());
@@ -55,6 +58,12 @@ module.exports.check = async (event, context, callback) => {
     if (isChanged) {
         // backspace the 'a' date-formatting param
         response = `${value <= ALLOWED_MEASURE ? 'Finally - ' : 'Fuck!!!'} ${value}. Checked on ${dateFormat(Date.now(), 'MMM DD \\at HH:mm')}`;
+
+        try {
+            await ses.sendSMS(process.env.AWS_SES_RECEIVER, response, 'Air Sofia Update');
+        } catch (e) {
+            console.warn('Failed to send Email with AWS SES Service');
+        }
 
         try {
             await smsapi.sendSMS(process.env.TWILIO_RECEIVER, response);

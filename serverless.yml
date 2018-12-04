@@ -19,6 +19,10 @@ provider:
       Resource:
         # - "Fn::GetAtt": [ CheckTable, Arn ] #  long YAML form
         - !GetAtt CheckTable.Arn   #  short YAML form
+    - Effect: "Allow"
+      Action:
+        - "ses:SendEmail"
+      Resource: ["*"]
 
 package:
   exclude:
@@ -36,7 +40,10 @@ functions:
       #     path: check
       #     method: get
       # - schedule: rate(10 minutes)
-      - schedule: rate(1 hour)
+      # - schedule: rate(1 hour)
+      #           cron(Minutes Hours Day-of-month Month Day-of-week Year)
+      # - schedule: cron(0/30 7-20 ? * * *) # Run every 30 minutes between 7:00am and 7:30pm (UTC) every day
+      - schedule: cron(0/30 7-20 ? * MON-FRI *) # Run every30 minutes between 7:00am and 7:30pm (UTC) Mon-Fri
     environment:
       # Ref of a DynamoDB Table returns its name
       # AWS_DYNAMODB_CHECK: { Ref: CheckTable }  #  long YAML form
