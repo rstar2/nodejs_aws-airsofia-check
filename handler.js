@@ -1,8 +1,8 @@
 const dateFormat = require('date-fns/format');
 
 // uncomment when used with "$ sls invoke local -f check"
-process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
-process.env.AWS_PROFILE = 'my-expirations-check';
+// process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
+// process.env.AWS_PROFILE = 'my-expirations-check';
 
 const db = require('./lib/dynamodb')(process.env.AWS_DYNAMODB_CHECK);
 const luftdaten = require('./lib/luftdaten');
@@ -15,12 +15,14 @@ const ses = require('./lib/aws-ses')(process.env.AWS_SES_SENDER);
 
 const LUFTDATEN_NODES = (process.env.LUFTDATEN_NODES || '5545, 10945').split(',')
     .map(str => +str.trim());
-const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM10'];
+const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM2.5'];
 
 // const ALLOWED_MEASURE = 50; // for PM10
 const ALLOWED_MEASURE = 30; // for PM2.5
 
 module.exports.check = async (event, context, callback) => {
+    console.log(process.env);
+
     let response;
     console.time('Invoking function check took');
 
@@ -47,28 +49,40 @@ module.exports.check = async (event, context, callback) => {
     console.log('Mean:', value);
 
     // get old value and update with the new
-    let oldValue = await db.get(LUFTDATEN_CHECK_TYPE).value;
+    const oldItem = await db.get(LUFTDATEN_CHECK_TYPE);
+    const oldValue = oldItem && oldItem.value;
+    console.log('Old Mean:', oldValue);
+
+    // update the DB anyway
     await db.set(LUFTDATEN_CHECK_TYPE, value);
 
+    const predicate = val => val > ALLOWED_MEASURE;
+    const negate = predicate => (...args) => predicate(...args);
+    const negPredicate = negate(predicate);
+
     let isChanged = !oldValue ||
-        (oldValue >= ALLOWED_MEASURE && value < ALLOWED_MEASURE) ||
-        (oldValue <= ALLOWED_MEASURE && value > ALLOWED_MEASURE);
+        (predicate(oldValue) && negPredicate(predicate)(value)) ||
+        (negPredicate(oldValue) && predicate(value));
 
     // if there's a need to send SMS
     if (isChanged) {
         // backspace the 'a' date-formatting param
         response = `${value <= ALLOWED_MEASURE ? 'Finally - ' : 'Fuck!!!'} ${value}. Checked on ${dateFormat(Date.now(), 'MMM DD \\at HH:mm')}`;
 
+        console.log('Notifying with:', response);
+
         try {
             await ses.sendSMS(process.env.AWS_SES_RECEIVER, response, 'Air Sofia Update');
         } catch (e) {
             console.warn('Failed to send Email with AWS SES Service');
+            console.error(e);
         }
 
         try {
             await smsapi.sendSMS(process.env.TWILIO_RECEIVER, response);
         } catch (e) {
-            console.warn('Failed to send SMS with Twilio Service');
+            console.warn('Failed to send SMS');
+            console.error(e);
         }
     }
 
