@@ -1,8 +1,10 @@
 const dateFormat = require('date-fns/format');
+const addHours = require('date-fns/add_hours');
 
 // uncomment when used with "$ sls invoke local -f check"
-// process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
-// process.env.AWS_PROFILE = 'my-expirations-check';
+process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
+process.env.AWS_PROFILE = 'my-expirations-check';
+
 
 const db = require('./lib/dynamodb')(process.env.AWS_DYNAMODB_CHECK);
 const luftdaten = require('./lib/luftdaten');
@@ -13,12 +15,28 @@ const smsapi = require('./lib/smsapi')(process.env.TWILIO_ACCOUNT_SID,
 
 const ses = require('./lib/aws-ses')(process.env.AWS_SES_SENDER);
 
-const LUFTDATEN_NODES = (process.env.LUFTDATEN_NODES || '5545, 10945').split(',')
-    .map(str => +str.trim());
+/**
+ * 
+ * @param {Stirng} str 
+ */
+const parseEnvArrayValues = (str, asNumber = false) => {
+    if (!str) return [];
+
+    return str
+        .split(',')
+        .map(str => {
+            str = str.trim();
+            return asNumber ? +str : str;
+        });
+};
+
+const LUFTDATEN_NODES = parseEnvArrayValues(process.env.LUFTDATEN_NODES || '5545, 10945', true);
 const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM2.5'];
 
 // const ALLOWED_MEASURE = 50; // for PM10
 const ALLOWED_MEASURE = 30; // for PM2.5
+
+
 
 module.exports.check = async (event, context, callback) => {
     console.log(process.env);
@@ -67,12 +85,12 @@ module.exports.check = async (event, context, callback) => {
     // if there's a need to send SMS
     if (isChanged) {
         // backspace the 'a' date-formatting param
-        response = `${value <= ALLOWED_MEASURE ? 'Finally - ' : 'Fuck!!!'} ${value}. Checked on ${dateFormat(Date.now(), 'MMM DD \\at HH:mm')}`;
+        response = `${value <= ALLOWED_MEASURE ? 'Green :) - ' : 'Red :( - '} ${value}. Checked on ${dateFormat(addHours(Date.now(), 2), 'MMM DD \\at HH:mm')}`;
 
         console.log('Notifying with:', response);
 
         try {
-            await ses.sendSMS(process.env.AWS_SES_RECEIVER, response, 'Air Sofia Update');
+            await ses.sendSMS(parseEnvArrayValues(process.env.AWS_SES_RECEIVER), response, 'Air Sofia Update');
         } catch (e) {
             console.warn('Failed to send Email with AWS SES Service');
             console.error(e);
