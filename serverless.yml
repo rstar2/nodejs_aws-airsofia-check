@@ -25,12 +25,16 @@ provider:
       Resource: ["*"]
 
 package:
+  # excludeDevDependencies: true  # this already true by default
   exclude:
-    - ./**
-  include:
-    - handler.js
-    - lib/**
-    - node_modules/**
+    - __tests__/**
+    - .vscode/**
+    - mock/**
+    - .editorconfig
+    - .eslintrc
+    - env.yml
+    - package-lock.json
+    - package.json
 
 functions:
   check:

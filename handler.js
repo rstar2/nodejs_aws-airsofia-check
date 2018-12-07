@@ -5,6 +5,7 @@ const addHours = require('date-fns/add_hours');
 // process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
 // process.env.AWS_PROFILE = 'my-expirations-check';
 
+const utils = require('./lib/utils');
 
 const db = require('./lib/dynamodb')(process.env.AWS_DYNAMODB_CHECK);
 const luftdaten = require('./lib/luftdaten');
@@ -38,23 +39,23 @@ const ALLOWED_MEASURE = 30; // for PM2.5
 
 const color = (value) => {
     let color;
-    if (color <= ALLOWED_MEASURE) {
-        color = "Green :)";
+    if (value <= ALLOWED_MEASURE) {
+        color = 'Green :)';
     } else {
-        color = "Yellow";
+        color = 'Yellow';
 
-        if (color > 3 * ALLOWED_MEASURE) {
-            color = "Red";
+        if (value > 3 * ALLOWED_MEASURE) {
+            color = 'Red';
 
-            if (color > 10 * ALLOWED_MEASURE) {
-                color = "Purple";
+            if (value > 10 * ALLOWED_MEASURE) {
+                color = 'Purple';
 
-                if (color > 20 * ALLOWED_MEASURE) {
-                    color = "Death";
+                if (value > 20 * ALLOWED_MEASURE) {
+                    color = 'Death';
                 }
             }
         }
-        color += " :(";
+        color += ' :(';
     }
 
     return color;
@@ -95,10 +96,10 @@ module.exports.check = async (event, context, callback) => {
     // update the DB anyway
     await db.set(LUFTDATEN_CHECK_TYPE, value);
 
-    const predicate = val => val > ALLOWED_MEASURE;
-    const negate = predicate => (...args) => predicate(...args);
-    const negPredicate = negate(predicate);
+    const predicate = utils.createPredicate(ALLOWED_MEASURE);
+    const negPredicate = utils.createNegatePredicate(predicate);
 
+    // TODO: notify on "step changes" (define "steps" first)
     let isChanged = !oldValue ||
         (predicate(oldValue) && negPredicate(value)) ||
         (negPredicate(oldValue) && predicate(value));
