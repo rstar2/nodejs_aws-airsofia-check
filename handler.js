@@ -2,8 +2,8 @@ const dateFormat = require('date-fns/format');
 const addHours = require('date-fns/add_hours');
 
 // uncomment when used with "$ sls invoke local -f check"
-process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
-process.env.AWS_PROFILE = 'my-expirations-check';
+// process.env.AWS_DYNAMODB_CHECK = 'my-airsofia-check-dev';
+// process.env.AWS_PROFILE = 'my-expirations-check';
 
 
 const db = require('./lib/dynamodb')(process.env.AWS_DYNAMODB_CHECK);
@@ -36,11 +36,32 @@ const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM2.
 // const ALLOWED_MEASURE = 50; // for PM10
 const ALLOWED_MEASURE = 30; // for PM2.5
 
+const color = (value) => {
+    let color;
+    if (color <= ALLOWED_MEASURE) {
+        color = "Green :)";
+    } else {
+        color = "Yellow";
+
+        if (color > 3 * ALLOWED_MEASURE) {
+            color = "Red";
+
+            if (color > 10 * ALLOWED_MEASURE) {
+                color = "Purple";
+
+                if (color > 20 * ALLOWED_MEASURE) {
+                    color = "Death";
+                }
+            }
+        }
+        color += " :(";
+    }
+
+    return color;
+};
 
 
 module.exports.check = async (event, context, callback) => {
-    console.log(process.env);
-
     let response;
     console.time('Invoking function check took');
 
@@ -79,13 +100,13 @@ module.exports.check = async (event, context, callback) => {
     const negPredicate = negate(predicate);
 
     let isChanged = !oldValue ||
-        (predicate(oldValue) && negPredicate(predicate)(value)) ||
+        (predicate(oldValue) && negPredicate(value)) ||
         (negPredicate(oldValue) && predicate(value));
 
     // if there's a need to send SMS
     if (isChanged) {
-        // backspace the 'a' date-formatting param
-        response = `${value <= ALLOWED_MEASURE ? 'Green :) - ' : 'Red :( - '} ${value}. Checked on ${dateFormat(addHours(Date.now(), 2), 'MMM DD \\at HH:mm')}`;
+        // backspace the 'a' date-formatting param - so 'MMM DD \\at HH:mm'
+        response = `${color(value)} - ${value}. Checked on ${dateFormat(addHours(Date.now(), 2), 'MMM DD \\at HH:mm')}`;
 
         console.log('Notifying with:', response);
 
