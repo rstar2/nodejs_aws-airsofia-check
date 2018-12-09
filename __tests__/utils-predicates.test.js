@@ -1,16 +1,15 @@
 const utils = require('../lib/utils');
 
-describe('Utils suite', () => {
+describe('Utils suite - predicates', () => {
 
     const ALLOWED_MEASURE = 30;
     const predicate = utils.createPredicate(ALLOWED_MEASURE);
     const negPredicate = utils.createNegatePredicate(predicate);
 
     const isChanged = (value, oldValue) => {
-        let isChanged = !oldValue ||
+        return !oldValue ||
             (predicate(oldValue) && negPredicate(value)) ||
             (negPredicate(oldValue) && predicate(value));
-        return isChanged;
     };
 
     test('should change on no oldValue', () => {

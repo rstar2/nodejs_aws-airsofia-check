@@ -37,29 +37,7 @@ const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM2.
 // const ALLOWED_MEASURE = 50; // for PM10
 const ALLOWED_MEASURE = 30; // for PM2.5
 
-const color = (value) => {
-    let color;
-    if (value <= ALLOWED_MEASURE) {
-        color = 'Green :)';
-    } else {
-        color = 'Yellow';
-
-        if (value > 3 * ALLOWED_MEASURE) {
-            color = 'Red';
-
-            if (value > 10 * ALLOWED_MEASURE) {
-                color = 'Purple';
-
-                if (value > 20 * ALLOWED_MEASURE) {
-                    color = 'Death';
-                }
-            }
-        }
-        color += ' :(';
-    }
-
-    return color;
-};
+const getStep = utils.createGetStep(ALLOWED_MEASURE);
 
 
 module.exports.check = async (event, context, callback) => {
@@ -96,18 +74,20 @@ module.exports.check = async (event, context, callback) => {
     // update the DB anyway
     await db.set(LUFTDATEN_CHECK_TYPE, value);
 
-    const predicate = utils.createPredicate(ALLOWED_MEASURE);
-    const negPredicate = utils.createNegatePredicate(predicate);
+    const step = getStep(value);
 
-    // TODO: notify on "step changes" (define "steps" first)
-    let isChanged = !oldValue ||
-        (predicate(oldValue) && negPredicate(value)) ||
-        (negPredicate(oldValue) && predicate(value));
+    // first bypass any "step" check changes if this is the first value to be written
+    let isChanged = !oldValue;
+    if (!isChanged) {
+        // check if step is changed - up or down
+        isChanged = getStep(oldValue).index !== step.index;
+
+    }
 
     // if there's a need to send SMS
     if (isChanged) {
         // backspace the 'a' date-formatting param - so 'MMM DD \\at HH:mm'
-        response = `${color(value)} - ${value}. Checked on ${dateFormat(addHours(Date.now(), 2), 'MMM DD \\at HH:mm')}`;
+        response = `${step.color} ${step.emo} - ${value}. Checked on ${dateFormat(addHours(Date.now(), 2), 'MMM DD \\at HH:mm')}`;
 
         console.log('Notifying with:', response);
 
