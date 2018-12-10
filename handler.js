@@ -39,7 +39,6 @@ const ALLOWED_MEASURE = 30; // for PM2.5
 
 const getStep = utils.createGetStep(ALLOWED_MEASURE);
 
-
 module.exports.check = async (event, context, callback) => {
     let response;
     console.time('Invoking function check took');
@@ -76,13 +75,13 @@ module.exports.check = async (event, context, callback) => {
 
     const step = getStep(value);
 
-    // first bypass any "step" check changes if this is the first value to be written
-    let isChanged = !oldValue;
-    if (!isChanged) {
-        // check if step is changed - up or down
-        isChanged = getStep(oldValue).index !== step.index;
-
-    }
+    // notify if: 
+    // 1. we should ALWAYS notify
+    // 2. this is the first value to be written
+    // 3. step is changed - up or down
+    const isChanged = event.always ||
+        !oldValue ||
+        getStep(oldValue).index !== step.index;
 
     // if there's a need to send SMS
     if (isChanged) {
