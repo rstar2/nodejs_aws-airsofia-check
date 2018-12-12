@@ -91,7 +91,8 @@ module.exports.check = async (event, context, callback) => {
         console.log('Notifying with:', response);
 
         try {
-            await ses.sendSMS(parseEnvArrayValues(process.env.AWS_SES_RECEIVER), response, 'Air Sofia Update');
+            const receivers = parseEnvArrayValues(process.env.AWS_SES_RECEIVER);
+            await ses.sendSMS(receivers, response, `AirSofia : (${value})`);
         } catch (e) {
             console.warn('Failed to send Email with AWS SES Service');
             console.error(e);
