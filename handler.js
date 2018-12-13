@@ -92,7 +92,7 @@ module.exports.check = async (event, context, callback) => {
 
         try {
             const receivers = parseEnvArrayValues(process.env.AWS_SES_RECEIVER);
-            await ses.sendSMS(receivers, response, `AirSofia : (${value})`);
+            await ses.sendSMS(receivers, response, `AirSofia : ${value}`);
         } catch (e) {
             console.warn('Failed to send Email with AWS SES Service');
             console.error(e);
