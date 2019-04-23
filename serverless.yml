@@ -45,17 +45,17 @@ functions:
       #     method: get
       # - schedule: rate(10 minutes)
       # - schedule: rate(1 hour)
-      # - schedule: cron(0/30 7-20 ? * MON-FRI *) # Run every30 minutes between 7:00am and 7:30pm (UTC) Mon-Fri
+      # - schedule: cron(0/30 7-20 ? * MON-FRI *) # Run every 30 minutes between 7:00am and 7:30pm (UTC) Mon-Fri
       #             cron(Minutes Hours Day-of-month Month Day-of-week Year)
       
-      # No each day the first scheduled check will ALWAYS notify
+      # On each day the first scheduled check will ALWAYS notify
       # later subsequent checks will notify ONLY on change
       - schedule:
-          rate: cron(0 7 ? * * *) # Run every at 7:00am (UTC) every day
+          rate: cron(0 6 ? * * *) # Run every at 7:00am (UTC) every day
           input:  # this input will be the received 'event' in the handler, so can be checked with 'event.always === true'
             always: true 
-      - schedule: cron(30 7 ? * * *) # Run every at 7:00am (UTC) every day
-      - schedule: cron(0/30 8-20 ? * * *) # Run every 30 minutes between 8:00am and 7:30pm (UTC) every day
+      - schedule: cron(30 6 ? * * *) # Run every at 7:00am (UTC) every day
+      - schedule: cron(0/30 7-19 ? * * *) # Run every 30 minutes between 8:00am and 7:30pm (UTC) every day
       
     environment:
       # Ref of a DynamoDB Table returns its name

@@ -2,5 +2,10 @@
     "cSpell.words": [
         "DYNAMODB",
         "LUFTDATEN"
-    ]
+    ],
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#073514",
+        "titleBar.activeBackground": "#094A1C",
+        "titleBar.activeForeground": "#F1FDF5"
+    }
 }
