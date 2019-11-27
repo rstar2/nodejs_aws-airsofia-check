@@ -32,7 +32,7 @@ const parseEnvArrayValues = (str, asNumber = false) => {
 };
 
 // For BG, Sofia Mladost 10.10.2019 - 28864, 11807, 29196, 3967, 8279 
-const LUFTDATEN_NODES = parseEnvArrayValues(process.env.LUFTDATEN_NODES || '3967, 8279', true);
+const LUFTDATEN_NODES = parseEnvArrayValues(process.env.LUFTDATEN_NODES || '28864, 34455, 3967, 8279', true);
 const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM2.5'];
 
 // const ALLOWED_MEASURE = 50; // for PM10
@@ -40,7 +40,7 @@ const ALLOWED_MEASURE = 30; // for PM2.5
 
 const getStep = utils.createGetStep(ALLOWED_MEASURE);
 
-module.exports.check = async (event, context, callback) => {
+module.exports.check = async (event, context) => {
     let response;
     console.time('Invoking function check took');
 
@@ -55,8 +55,7 @@ module.exports.check = async (event, context, callback) => {
     // if all nodes failed the no mean value could be calculated
     values = values.filter(val => val >= 0);
     if (!values.length) {
-        callback(null, 'Failed to get any measures');
-        return;
+        throw new Error('Failed to get any measures');
     }
 
     // get mean value
@@ -109,6 +108,6 @@ module.exports.check = async (event, context, callback) => {
 
     console.timeEnd('Invoking function check took');
 
-    callback(null, response);
+    return response;
 };
 

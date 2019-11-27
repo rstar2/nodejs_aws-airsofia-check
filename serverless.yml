@@ -39,6 +39,7 @@ package:
 functions:
   check:
     handler: handler.check
+    timeout: 30 # optional, in seconds, default is 6
     events:
       # - http:
       #     path: check
