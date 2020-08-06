@@ -6,13 +6,13 @@ describe('Utils suite - steps', () => {
     const getStep = utils.createGetStep(ALLOWED_MEASURE);
 
     const isChanged = (value, oldValue) => {
-        return !oldValue ||
-            (getStep(oldValue).index != getStep(value).index);
+        return utils.isChanged(getStep, value, oldValue);
     };
 
     test('should change on no oldValue', () => {
         const value = 10;
         expect(isChanged(value)).toBeTruthy();
+        console.log('use');
     });
 
     test('should change on greater', () => {
@@ -73,5 +73,17 @@ describe('Utils suite - steps', () => {
         const oldValue = 800;
         const value = 301;
         expect(isChanged(value, oldValue)).toBeTruthy();
+    });
+
+    test('should NOT change on "to 0"', () => {
+        const oldValue = 5;
+        const value = 0;
+        expect(isChanged(value, oldValue)).toBeFalsy();
+    });
+
+    test('should NOT change on "from 0"', () => {
+        const oldValue = 0;
+        const value = 5;
+        expect(isChanged(value, oldValue)).toBeFalsy();
     });
 });

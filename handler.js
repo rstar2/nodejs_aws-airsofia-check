@@ -67,7 +67,7 @@ module.exports.check = async (event, context) => {
 
     // get old value and update with the new
     const oldItem = await db.get(LUFTDATEN_CHECK_TYPE);
-    const oldValue = oldItem && oldItem.value;
+    const oldValue = (oldItem && oldItem.value) || undefined;
     console.log('Old Mean:', oldValue);
 
     // update the DB anyway
@@ -80,7 +80,7 @@ module.exports.check = async (event, context) => {
     // 2. this is the first value to be written
     // 3. step is changed - up or down
     const isChanged = event.always ||
-        !oldValue ||
+        oldValue === undefined ||
         getStep(oldValue).index !== step.index;
 
     // if there's a need to send SMS

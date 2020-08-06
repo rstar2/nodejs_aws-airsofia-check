@@ -4,7 +4,8 @@
   "description": "",
   "main": "handler.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "deploy": "sls deploy"
   },
   "keywords": [],
   "author": "Rumen Neshev <rstardev@abv.bg>",
