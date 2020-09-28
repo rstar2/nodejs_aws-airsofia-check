@@ -75,6 +75,16 @@ describe('Utils suite - steps', () => {
         expect(isChanged(value, oldValue)).toBeTruthy();
     });
 
+    test('should NOT change on no-change', () => {
+        let oldValue = 0;
+        let value = 0;
+        expect(isChanged(value, oldValue)).toBeFalsy();
+
+        oldValue = 5;
+        value = 5;
+        expect(isChanged(value, oldValue)).toBeFalsy();
+    });
+
     test('should NOT change on "to 0"', () => {
         const oldValue = 5;
         const value = 0;
