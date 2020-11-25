@@ -67,7 +67,8 @@ module.exports.check = async (event, context) => {
 
     // get old value and update with the new
     const oldItem = await db.get(LUFTDATEN_CHECK_TYPE);
-    const oldValue = (oldItem && oldItem.value !== undefined) || undefined;
+    // note  oldItem.value could be 0, which is a valid value
+    const oldValue = (oldItem && oldItem.value !== undefined) ? oldItem.value : undefined;
     console.log('Old Mean:', oldValue);
 
     // update the DB anyway

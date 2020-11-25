@@ -96,4 +96,10 @@ describe('Utils suite - steps', () => {
         const value = 5;
         expect(isChanged(value, oldValue)).toBeFalsy();
     });
+
+    test('should fail "getStep"', () => {
+        expect(() => {
+            utils.createGetStep(true);
+        }).toThrow();
+    });
 });
