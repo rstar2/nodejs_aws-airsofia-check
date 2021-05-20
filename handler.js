@@ -40,7 +40,12 @@ const ALLOWED_MEASURE = 30; // for PM2.5
 
 const getStep = utils.createGetStep(ALLOWED_MEASURE);
 
+const isEnabled = process.env.ENABLED !== "false";
+
 module.exports.check = async (event, context) => {
+    // if not enabled then skip the Lambda execution
+    if (!isEnabled) return;
+
     let response;
     console.time('Invoking function check took');
 

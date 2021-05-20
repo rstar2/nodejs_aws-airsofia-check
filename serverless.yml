@@ -54,23 +54,24 @@ functions:
 
       # SUMMER
       # - schedule:
-      #     rate: cron(0 6 ? * * *) # Run every at 7:00am (UTC) every day
+      #     rate: cron(0 6 ? * * *) # Run every at 6:00am (UTC) every day
       #     input:  # this input will be the received 'event' in the handler, so can be checked with 'event.always === true'
       #       always: true 
-      # - schedule: cron(30 6 ? * * *) # Run every at 7:00am (UTC) every day
-      # - schedule: cron(0/30 7-19 ? * * *) # Run every 30 minutes between 8:00am and 7:30pm (UTC) every day
+      # - schedule: cron(30 6 ? * * *) # Run every at 6:30am (UTC) every day
+      # - schedule: cron(0/30 7-19 ? * * *) # Run every 30 minutes between 7:00am and 19:30pm (UTC) every day
       
       # WINTER
       - schedule:
-          rate: cron(30 5 ? * * *) # Run every at 7:00am (UTC) every day
+          rate: cron(30 5 ? * * *) # Run every at 5:30am (UTC) every day
           input:  # this input will be the received 'event' in the handler, so can be checked with 'event.always === true'
             always: true 
-      - schedule: cron(0/30 6-18 ? * * *) # Run every 30 minutes between 8:00am and 7:30pm (UTC) every day
+      - schedule: cron(0/30 6-18 ? * * *) # Run every 30 minutes between 6:00am and 18:30pm (UTC) every day
       
     environment:
       # Ref of a DynamoDB Table returns its name
       # AWS_DYNAMODB_CHECK: { Ref: CheckTable }  #  long YAML form
       AWS_DYNAMODB_CHECK: !Ref CheckTable #  short YAML form
+      ENABLED: true
           
    
 resources:
