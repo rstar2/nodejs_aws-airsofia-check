@@ -3,11 +3,13 @@ service: my-airsofia-check
 provider:
   name: aws
   profile: serverless-cli
-  runtime: nodejs10.x
+  runtime: nodejs14.x
   region: eu-west-1
 
   stage: ${opt:stage, 'dev'}
   environment: ${file(env.yml):${self:provider.stage}}
+
+  lambdaHashingVersion: 20201221
 
   iamRoleStatements:
     - Effect: Allow
@@ -26,15 +28,15 @@ provider:
 
 package:
   # excludeDevDependencies: true  # this already true by default
-  exclude:
-    - __tests__/**
-    - .vscode/**
-    - mock/**
-    - .editorconfig
-    - .eslintrc
-    - env.yml
-    - package-lock.json
-    - package.json
+  patterns:
+    - '!__tests__/**'
+    - '!.vscode/**'
+    - '!mock/**'
+    - '!.editorconfig'
+    - '!.eslintrc'
+    - '!env.yml'
+    - '!package-lock.json'
+    - '!package.json'
 
 functions:
   check:

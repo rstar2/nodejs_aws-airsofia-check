@@ -31,8 +31,8 @@ const parseEnvArrayValues = (str, asNumber = false) => {
         });
 };
 
-// For BG, Sofia Mladost 10.10.2019 - 28864, 11807, 29196, 3967, 8279 
-const LUFTDATEN_NODES = parseEnvArrayValues(process.env.LUFTDATEN_NODES || '28864, 34455, 3967, 8279', true);
+// For BG, Sofia Mladost 06.10.2021 - 28864, 11807, 3967, 8279 
+const LUFTDATEN_NODES = parseEnvArrayValues(process.env.LUFTDATEN_NODES || '28864, 3967, 8279, 11807', true);
 const LUFTDATEN_CHECK_TYPE = process.env.LUFTDATEN_TYPE || luftdaten.types['PM2.5'];
 
 // const ALLOWED_MEASURE = 50; // for PM10
